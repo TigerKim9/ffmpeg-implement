@@ -5,16 +5,42 @@ use std::path::PathBuf;
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([900.0, 600.0])
-            .with_min_inner_size([600.0, 400.0]),
+            .with_inner_size([1000.0, 700.0])
+            .with_min_inner_size([800.0, 500.0]),
         ..Default::default()
     };
 
     eframe::run_native(
         "FFmpeg-RS - Media Processor",
         options,
-        Box::new(|_cc| Ok(Box::new(MediaProcessorApp::default()))),
+        Box::new(|cc| {
+            // 커스텀 스타일 설정
+            setup_custom_style(&cc.egui_ctx);
+            Ok(Box::new(MediaProcessorApp::default()))
+        }),
     )
+}
+
+fn setup_custom_style(ctx: &egui::Context) {
+    let mut style = (*ctx.style()).clone();
+
+    // 둥근 모서리
+    style.visuals.widgets.noninteractive.rounding = egui::Rounding::same(4.0);
+    style.visuals.widgets.inactive.rounding = egui::Rounding::same(6.0);
+    style.visuals.widgets.hovered.rounding = egui::Rounding::same(6.0);
+    style.visuals.widgets.active.rounding = egui::Rounding::same(6.0);
+
+    // 간격 조정
+    style.spacing.item_spacing = egui::vec2(10.0, 8.0);
+    style.spacing.button_padding = egui::vec2(12.0, 6.0);
+    style.spacing.window_margin = egui::Margin::same(12.0);
+
+    // 색상 테마 - 부드러운 파란색 테마
+    style.visuals.widgets.inactive.bg_fill = egui::Color32::from_rgb(235, 240, 250);
+    style.visuals.widgets.hovered.bg_fill = egui::Color32::from_rgb(200, 215, 240);
+    style.visuals.widgets.active.bg_fill = egui::Color32::from_rgb(100, 150, 230);
+
+    ctx.set_style(style);
 }
 
 #[derive(Default)]
@@ -469,26 +495,74 @@ impl MediaProcessorApp {
 impl eframe::App for MediaProcessorApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("🎬 FFmpeg-RS Media Processor");
-            ui.label("Simple media processing tool built with Rust");
-            ui.add_space(10.0);
+            // 헤더
+            egui::Frame::none()
+                .fill(egui::Color32::from_rgb(245, 248, 255))
+                .inner_margin(egui::Margin::symmetric(16.0, 16.0))
+                .show(ui, |ui| {
+                    ui.vertical_centered(|ui| {
+                        ui.label(
+                            egui::RichText::new("🎬 FFmpeg-RS")
+                                .size(26.0)
+                                .strong()
+                                .color(egui::Color32::from_rgb(50, 70, 130))
+                        );
+                        ui.add_space(4.0);
+                        ui.label(
+                            egui::RichText::new("간단하고 빠른 미디어 처리 도구")
+                                .size(13.0)
+                                .color(egui::Color32::from_rgb(100, 100, 130))
+                        );
+                    });
+                });
+
+            ui.add_space(12.0);
 
             // Tab selection
             ui.horizontal(|ui| {
-                ui.selectable_value(&mut self.active_tab, Tab::Audio, "🎵 Audio");
-                ui.selectable_value(&mut self.active_tab, Tab::Image, "🖼️ Image");
-            });
+                ui.add_space(12.0);
 
-            ui.separator();
-            ui.add_space(10.0);
+                let audio_btn = egui::SelectableLabel::new(
+                    self.active_tab == Tab::Audio,
+                    egui::RichText::new("  🎵 오디오  ").size(14.0)
+                );
+                if ui.add(audio_btn).clicked() {
+                    self.active_tab = Tab::Audio;
+                }
 
-            // Render active tab
-            egui::ScrollArea::vertical().show(ui, |ui| {
-                match self.active_tab {
-                    Tab::Audio => self.render_audio_tab(ui),
-                    Tab::Image => self.render_image_tab(ui),
+                ui.add_space(6.0);
+
+                let image_btn = egui::SelectableLabel::new(
+                    self.active_tab == Tab::Image,
+                    egui::RichText::new("  🖼️ 이미지  ").size(14.0)
+                );
+                if ui.add(image_btn).clicked() {
+                    self.active_tab = Tab::Image;
                 }
             });
+
+            ui.add_space(6.0);
+            ui.separator();
+            ui.add_space(6.0);
+
+            // Render active tab
+            egui::ScrollArea::vertical()
+                .auto_shrink([false; 2])
+                .show(ui, |ui| {
+                    ui.add_space(8.0);
+
+                    // 좌우 마진
+                    egui::Frame::none()
+                        .inner_margin(egui::Margin::symmetric(12.0, 0.0))
+                        .show(ui, |ui| {
+                            match self.active_tab {
+                                Tab::Audio => self.render_audio_tab(ui),
+                                Tab::Image => self.render_image_tab(ui),
+                            }
+                        });
+
+                    ui.add_space(12.0);
+                });
         });
     }
 }
