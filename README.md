@@ -1,13 +1,15 @@
 # ffmpeg-rs
 
-외부 라이브러리 없이 Rust 표준 라이브러리만으로 만든 간단한 미디어 처리 도구입니다.
+간단한 미디어 처리 도구입니다. 코덱 구현은 순수 Rust 표준 라이브러리만 사용합니다.
 
 ## 특징
 
-- **순수 Rust 구현**: 외부 의존성 없이 std만 사용
+- **순수 Rust 코덱 구현**: 코덱은 외부 의존성 없이 std만 사용
 - **오디오 처리**: WAV 파일 정보 읽기, 볼륨 조절, 스테레오→모노 변환
 - **이미지 처리**: BMP 파일 정보 읽기, 리사이징, 그레이스케일 변환
-- **CLI 인터페이스**: 터미널에서 직접 사용 가능
+- **2가지 인터페이스**:
+  - CLI - 터미널에서 직접 사용
+  - GUI - egui 기반 그래픽 인터페이스
 
 ## 지원 포맷
 
@@ -24,15 +26,48 @@
 ## 설치
 
 ```bash
-# 프로젝트 빌드
-cargo build --release
+# CLI 도구 빌드
+cargo build --release --bin ffmpeg-rs
 
-# 바이너리는 target/release/ffmpeg-rs에 생성됩니다
+# GUI 도구 빌드
+cargo build --release --bin ffmpeg-rs-gui
+
+# 또는 둘 다 빌드
+cargo build --release
 ```
+
+바이너리 위치:
+- CLI: `target/release/ffmpeg-rs` (~530 KB)
+- GUI: `target/release/ffmpeg-rs-gui` (~18 MB)
 
 ## 사용법
 
-### 기본 명령어
+### GUI 사용법
+
+GUI 애플리케이션 실행:
+
+```bash
+./target/release/ffmpeg-rs-gui
+```
+
+GUI 기능:
+- **오디오 탭**: WAV 파일 처리
+  - 파일 선택 대화상자
+  - 파일 정보 표시
+  - 볼륨 조절 슬라이더 (0.0 ~ 2.0)
+  - 스테레오 → 모노 변환 체크박스
+  - 출력 파일 설정
+
+- **이미지 탭**: BMP 파일 처리
+  - 파일 선택 대화상자
+  - 파일 정보 표시
+  - 리사이징 (폭/높이 설정)
+  - 그레이스케일 변환 체크박스
+  - 출력 파일 설정
+
+### CLI 사용법
+
+#### 기본 명령어
 
 ```bash
 # 도움말 보기
@@ -88,17 +123,31 @@ $ ./target/release/ffmpeg-rs image-resize photo.bmp resized.bmp 640 480
 ```
 ffmpeg-implement/
 ├── src/
+│   ├── lib.rs            # 라이브러리 루트 (wav, bmp 모듈 export)
 │   ├── main.rs           # CLI 엔트리포인트
+│   ├── gui_main.rs       # GUI 엔트리포인트 (egui)
 │   ├── wav/              # WAV 오디오 모듈
 │   │   ├── mod.rs
-│   │   ├── parser.rs     # WAV 파일 파싱
+│   │   ├── parser.rs     # WAV 파일 파싱 (순수 Rust)
 │   │   └── processor.rs  # 오디오 처리 (볼륨, 모노 변환)
 │   └── bmp/              # BMP 이미지 모듈
 │       ├── mod.rs
-│       ├── parser.rs     # BMP 파일 파싱
+│       ├── parser.rs     # BMP 파일 파싱 (순수 Rust)
 │       └── processor.rs  # 이미지 처리 (리사이징, 그레이스케일)
+├── examples/
+│   └── generate_test_files.rs  # 테스트 파일 생성기
 └── Cargo.toml
 ```
+
+### 의존성
+
+**코덱 구현** (wav, bmp 모듈):
+- 외부 의존성 없음, Rust 표준 라이브러리만 사용
+
+**GUI**:
+- `eframe` 0.28 - egui 프레임워크
+- `egui` 0.28 - 즉시 모드 GUI 라이브러리
+- `rfd` 0.14 - 파일 선택 대화상자
 
 ## 기술 상세
 
@@ -166,6 +215,12 @@ Pixel Data
 4. **간단한 압축 코덱**
    - RLE (Run-Length Encoding)
    - ADPCM (오디오)
+
+5. **GUI 개선**
+   - 실시간 오디오 파형 미리보기
+   - 이미지 미리보기
+   - 배치 처리 기능
+   - 진행률 표시
 
 ## 라이선스
 

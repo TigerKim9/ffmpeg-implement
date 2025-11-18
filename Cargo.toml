@@ -5,8 +5,19 @@ edition = "2021"
 authors = ["ffmpeg-implement"]
 description = "A simple media processing tool written in Rust from scratch"
 
+[lib]
+name = "ffmpeg_rs"
+path = "src/lib.rs"
+
 [[bin]]
 name = "ffmpeg-rs"
 path = "src/main.rs"
 
+[[bin]]
+name = "ffmpeg-rs-gui"
+path = "src/gui_main.rs"
+
 [dependencies]
+eframe = "0.28"
+egui = "0.28"
+rfd = "0.14"
